@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/swift-server/async-http-client.git",
       "state" : {
-        "revision" : "fc510a39cff61b849bf5cdff17eb2bd6d0777b49",
-        "version" : "1.11.5"
+        "revision" : "333e60cc90f52973f7ee29cd8e3a7f6adfe79f4e",
+        "version" : "1.17.0"
       }
     },
     {
@@ -21,10 +21,10 @@
     {
       "identity" : "hummingbird-aws",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/FeatherCMS/hummingbird-aws",
+      "location" : "https://github.com/FeatherCMS/hummingbird-aws.git",
       "state" : {
         "branch" : "main",
-        "revision" : "619e6c373b769bb7a41f0cfa6952e1eabf5fab93"
+        "revision" : "e6cf96d36df212a389a30598c319360ba2c4db9f"
       }
     },
     {
@@ -131,8 +131,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio-extras.git",
       "state" : {
-        "revision" : "6c84d247754ad77487a6f0694273b89b83efd056",
-        "version" : "1.14.0"
+        "revision" : "0e0d0aab665ff1a0659ce75ac003081f2b1c8997",
+        "version" : "1.19.0"
       }
     },
     {
@@ -149,8 +149,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio-ssl.git",
       "state" : {
-        "revision" : "0265283d3539ced108b9b8287eb3328c9d85acdc",
-        "version" : "2.21.0"
+        "revision" : "e866a626e105042a6a72a870c88b4c531ba05f83",
+        "version" : "2.24.0"
       }
     },
     {
@@ -158,8 +158,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio-transport-services.git",
       "state" : {
-        "revision" : "4e02d9cf35cabfb538c96613272fb027dd0c8692",
-        "version" : "1.13.1"
+        "revision" : "41f4098903878418537020075a4d8a6e20a0b182",
+        "version" : "1.17.0"
       }
     },
     {
