@@ -1,23 +1,32 @@
-//
-//  ObjectStorage.swift
-//  LiquidKit
-//
-//  Created by Tibor Bodecs on 2020. 04. 28..
-//
-
 import NIO
 
-///
-/// Object storage protocol
-///
-public protocol ObjectStorage {
+public enum MultipartUpload {
 
-    /// Object storage context
-    var context: ObjectStorageContext { get }
+    public struct ID: Hashable, Codable {
+        
+        public let value: String
 
-    /// Checksum calculator for upload validations
-    func createChecksumCalculator() -> ChecksumCalculator
-    
+        public init(_ value: String) {
+            self.value = value
+        }
+    }
+
+    public struct Chunk {
+        public let id: String
+        public let number: Int
+        
+        public init(
+            id: String,
+            number: Int
+        ) {
+            self.id = id
+            self.number = number
+        }
+    }
+}
+
+public protocol HBStorage {
+
     /// Returns the available disk space
     func getAvailableSpace() -> UInt64
 

@@ -4,12 +4,12 @@ import PackageDescription
 let package = Package(
     name: "hummingbird-storage",
     platforms: [
-       .macOS(.v10_15),
+       .macOS(.v12),
     ],
     products: [
         .library(name: "HummingbirdStorage", targets: ["HummingbirdStorage"]),
-        .library(name: "LocalDriver", targets: ["LocalDriver"]),
-        .library(name: "S3Driver", targets: ["S3Driver"]),
+//        .library(name: "HummingbirdLFS", targets: ["HummingbirdLFS"]),
+        .library(name: "HummingbirdS3", targets: ["HummingbirdS3"]),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser.git",from: "1.0.0"),
@@ -21,32 +21,36 @@ let package = Package(
         .package(url: "https://github.com/FeatherCMS/hummingbird-aws.git", branch: "main"),
     ],
     targets: [
+//        .target(name: "CRC32"),
         .target(name: "HummingbirdStorage", dependencies: [
             .product(name: "Hummingbird", package: "hummingbird"),
             .product(name: "NIO", package: "swift-nio"),
             .product(name: "Logging", package: "swift-log"),
         ]),
-        .target(name: "LocalDriver", dependencies: [
+//        .target(name: "HummingbirdLFS", dependencies: [
+//            .product(name: "NIO", package: "swift-nio"),
+//            .product(name: "Logging", package: "swift-log"),
+//            .target(name: "HummingbirdStorage"),
+//            .target(name: "CRC32"),
+//        ]),
+        .target(name: "HummingbirdS3", dependencies: [
             .product(name: "NIO", package: "swift-nio"),
             .product(name: "Logging", package: "swift-log"),
-            .target(name: "HummingbirdStorage"),
-        ]),
-        .target(name: "S3Driver", dependencies: [
-            .product(name: "NIO", package: "swift-nio"),
-            .product(name: "Logging", package: "swift-log"),
+            .product(name: "SotoCore", package: "soto-core"),
             .product(name: "SotoS3", package: "soto"),
+            .product(name: "HummingbirdAWS", package: "hummingbird-aws"),
             .target(name: "HummingbirdStorage"),
         ]),
-        .testTarget(name: "LocalDriverTests",
-             dependencies: [
-                .target(name: "HummingbirdStorage"),
-                .target(name: "LocalDriver"),
-                .product(name: "HummingbirdFoundation", package: "hummingbird"),
-        ]),
-        .testTarget(name: "S3DriverTests",
-             dependencies: [
-                .target(name: "HummingbirdStorage"),
-                .target(name: "S3Driver"),
-        ]),
+//        .testTarget(name: "HummingbirdLFSTests",
+//             dependencies: [
+//                .target(name: "HummingbirdStorage"),
+//                .target(name: "HummingbirdLFS"),
+//                .product(name: "HummingbirdFoundation", package: "hummingbird"),
+//        ]),
+//        .testTarget(name: "HummingbirdS3Tests",
+//             dependencies: [
+//                .target(name: "HummingbirdStorage"),
+//                .target(name: "HummingbirdS3"),
+//        ]),
     ]
 )

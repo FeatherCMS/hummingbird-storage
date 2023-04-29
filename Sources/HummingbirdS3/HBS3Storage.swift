@@ -1,56 +1,24 @@
-//
-//  S3ObjectStorage.swift
-//  LiquidS3Driver
-//
-//  Created by Tibor Bodecs on 2020. 04. 28..
-//
-
 import HummingbirdStorage
 import SotoS3
 
-///
-/// S3 object storage implementation
-/// 
-struct S3ObjectStorage {
+struct HBS3Storage {
 	
-    let s3: S3
-    let context: ObjectStorageContext
+    let service: HBS3StorageService
+    let logger: Logger
+    let eventLoop: EventLoop
 
 	init(
-        s3: S3,
-        context: ObjectStorageContext
+        service: HBS3StorageService,
+        logger: Logger,
+        eventLoop: EventLoop
     ) {
-        self.s3 = s3
-        self.context = context
+        self.service = service
+        self.logger = logger
+        self.eventLoop = eventLoop
     }
 }
 
-private extension S3ObjectStorage {
-
-    var configuration: S3ObjectStorageConfiguration {
-        context.configuration as! S3ObjectStorageConfiguration
-    }
-
-    var region: String { configuration.region.rawValue }
-
-    var bucketName: String { configuration.bucket.name! }
-
-    var publicEndpoint: String {
-        if let endpoint = configuration.publicEndpoint {
-            return endpoint
-        }
-        if configuration.region == .useast1 {
-            return "https://\(bucketName).s3.amazonaws.com"
-        }
-        return "https://\(bucketName).s3-\(region).amazonaws.com"
-    }
-}
-
-extension S3ObjectStorage: ObjectStorage {
-
-    func createChecksumCalculator() -> ChecksumCalculator {
-        CRC32()
-    }
+extension HBS3Storage: HBStorage {
     
     func getAvailableSpace() -> UInt64 {
         .max
@@ -62,7 +30,7 @@ extension S3ObjectStorage: ObjectStorage {
     func resolve(
         key: String
     ) -> String {
-        publicEndpoint + "/" + key
+        service.publicEndpoint + "/" + key
     }
     
     func upload<T: AsyncSequence & Sendable>(
@@ -72,35 +40,31 @@ extension S3ObjectStorage: ObjectStorage {
         checksum: String?,
         timeout: TimeAmount
     ) async throws where T.Element == ByteBuffer {
-        do {
-            let customS3 = s3.with(timeout: timeout)
-            if #available(macOS 12.0, *) {
-                _ = try await customS3.putObject(
-                    .init(
-                        acl: .publicRead,
-                        body: .asyncSequence(sequence, size: Int(size)),
-                        bucket: bucketName,
-                        checksumAlgorithm: (checksum != nil) ? .crc32 : .none,
-                        checksumCRC32: checksum,
-                        key: key
-                    ),
-                    logger: context.logger,
-                    on: context.eventLoop
-                )
-            } else {
-                // Fallback on earlier versions
-            }
-        }
-        catch let error as SotoCore.AWSResponseError {
-            if
-                let ctx = error.context,
-                ctx.responseCode == .badRequest,
-                ctx.message == "Value for x-amz-checksum-crc32 header is invalid."
-            {
-                throw ObjectStorageError.invalidChecksum
-            }
-            throw error
-        }
+//        do {
+//            let customS3 = s3.with(timeout: timeout)
+//            _ = try await customS3.putObject(
+//                .init(
+//                    acl: .publicRead,
+//                    body: .asyncSequence(sequence, size: Int(size)),
+//                    bucket: service.bucketName,
+//                    checksumAlgorithm: (checksum != nil) ? .crc32 : .none,
+//                    checksumCRC32: checksum,
+//                    key: key
+//                ),
+//                logger: logger,
+//                on: eventLoop
+//            )
+//        }
+//        catch let error as SotoCore.AWSResponseError {
+//            if
+//                let ctx = error.context,
+//                ctx.responseCode == .badRequest,
+//                ctx.message == "Value for x-amz-checksum-crc32 header is invalid."
+//            {
+//                throw HBStorageError.invalidChecksum
+//            }
+//            throw error
+//        }
     }
     
     
@@ -114,31 +78,31 @@ extension S3ObjectStorage: ObjectStorage {
         checksum: String?,
         timeout: TimeAmount
     ) async throws {
-        do {
-            let customS3 = s3.with(timeout: timeout)
-            _ = try await customS3.putObject(
-                .init(
-                    acl: .publicRead,
-                    body: .byteBuffer(buffer),
-                    bucket: bucketName,
-                    checksumAlgorithm: (checksum != nil) ? .crc32 : .none,
-                    checksumCRC32: checksum,
-                    key: key
-                ),
-                logger: context.logger,
-                on: context.eventLoop
-            )
-        }
-        catch let error as SotoCore.AWSResponseError {
-            if
-                let ctx = error.context,
-                ctx.responseCode == .badRequest,
-                ctx.message == "Value for x-amz-checksum-crc32 header is invalid."
-            {
-                throw ObjectStorageError.invalidChecksum
-            }
-            throw error
-        }
+//        do {
+//            let customS3 = s3.with(timeout: timeout)
+//            _ = try await customS3.putObject(
+//                .init(
+//                    acl: .publicRead,
+//                    body: .byteBuffer(buffer),
+//                    bucket: service.bucketName,
+//                    checksumAlgorithm: (checksum != nil) ? .crc32 : .none,
+//                    checksumCRC32: checksum,
+//                    key: key
+//                ),
+//                logger: logger,
+//                on: eventLoop
+//            )
+//        }
+//        catch let error as SotoCore.AWSResponseError {
+//            if
+//                let ctx = error.context,
+//                ctx.responseCode == .badRequest,
+//                ctx.message == "Value for x-amz-checksum-crc32 header is invalid."
+//            {
+//                throw HBStorageError.invalidChecksum
+//            }
+//            throw error
+//        }
     }
     
     // MARK: - multipart upload
@@ -146,14 +110,14 @@ extension S3ObjectStorage: ObjectStorage {
     func createMultipartUpload(
         key: String
     ) async throws -> MultipartUpload.ID {
-        let res = try await s3.createMultipartUpload(
+        let res = try await service.s3.createMultipartUpload(
             .init(
                 acl: .publicRead,
-                bucket: bucketName,
+                bucket: service.bucketName,
                 key: key
             ),
-            logger: context.logger,
-            on: context.eventLoop
+            logger: logger,
+            on: eventLoop
         )
         guard let uploadId = res.uploadId else {
             fatalError()
@@ -168,20 +132,20 @@ extension S3ObjectStorage: ObjectStorage {
         partNumber: Int,
         timeout: TimeAmount
     ) async throws -> MultipartUpload.Chunk {
-        let customS3 = s3.with(timeout: timeout)
+        let customS3 = service.s3.with(timeout: timeout)
         let res = try await customS3.uploadPart(
             .init(
                 body: .byteBuffer(buffer),
-                bucket: bucketName,
+                bucket: service.bucketName,
                 key: key,
                 partNumber: partNumber,
                 uploadId: uploadId.value
             ),
-            logger: context.logger,
-            on: context.eventLoop
+            logger: logger,
+            on: eventLoop
         )
         guard let etag = res.eTag else {
-            throw ObjectStorageError.invalidResponse
+            throw HBStorageError.invalidResponse
         }
         return .init(id: etag, number: partNumber)
     }
@@ -194,20 +158,20 @@ extension S3ObjectStorage: ObjectStorage {
         partNumber: Int,
         timeout: TimeAmount
     ) async throws -> MultipartUpload.Chunk where T.Element == ByteBuffer {
-        let customS3 = s3.with(timeout: timeout)
+        let customS3 = service.s3.with(timeout: timeout)
         let res = try await customS3.uploadPart(
             .init(
                 body: .asyncSequence(sequence, size: Int(size)),
-                bucket: bucketName,
+                bucket: service.bucketName,
                 key: key,
                 partNumber: partNumber,
                 uploadId: uploadId.value
             ),
-            logger: context.logger,
-            on: context.eventLoop
+            logger: logger,
+            on: eventLoop
         )
         guard let etag = res.eTag else {
-            throw ObjectStorageError.invalidResponse
+            throw HBStorageError.invalidResponse
         }
         return .init(id: etag, number: partNumber)
     }
@@ -216,14 +180,14 @@ extension S3ObjectStorage: ObjectStorage {
         key: String,
         uploadId: MultipartUpload.ID
     ) async throws {
-        _ = try await s3.abortMultipartUpload(
+        _ = try await service.s3.abortMultipartUpload(
             .init(
-                bucket: bucketName,
+                bucket: service.bucketName,
                 key: key,
                 uploadId: uploadId.value
             ),
-            logger: context.logger,
-            on: context.eventLoop
+            logger: logger,
+            on: eventLoop
         )
     }
     
@@ -241,17 +205,17 @@ extension S3ObjectStorage: ObjectStorage {
             )
         }
         do {
-            let customS3 = s3.with(timeout: timeout)
+            let customS3 = service.s3.with(timeout: timeout)
             _ = try await customS3.completeMultipartUpload(
                 .init(
-                    bucket: bucketName,
+                    bucket: service.bucketName,
                     checksumCRC32: checksum,
                     key: key,
                     multipartUpload: .init(parts: parts),
                     uploadId: uploadId.value
                 ),
-                logger: context.logger,
-                on: context.eventLoop
+                logger: logger,
+                on: eventLoop
             )
         }
         catch let error as SotoCore.AWSResponseError {
@@ -260,7 +224,7 @@ extension S3ObjectStorage: ObjectStorage {
                 ctx.responseCode == .badRequest,
                 ctx.message == "Value for x-amz-checksum-crc32 header is invalid."
             {
-                throw ObjectStorageError.invalidChecksum
+                throw HBStorageError.invalidChecksum
             }
             throw error
         }
@@ -272,15 +236,15 @@ extension S3ObjectStorage: ObjectStorage {
     func create(
         key: String
     ) async throws {
-        _ = try await s3.putObject(
+        _ = try await service.s3.putObject(
             .init(
                 acl: .publicRead,
-                bucket: bucketName,
+                bucket: service.bucketName,
                 contentLength: 0,
                 key: key
             ),
-            logger: context.logger,
-            on: context.eventLoop
+            logger: logger,
+            on: eventLoop
         )
     }
 
@@ -290,13 +254,13 @@ extension S3ObjectStorage: ObjectStorage {
     func list(
         key: String? = nil
     ) async throws -> [String] {
-        let list = try await s3.listObjects(
+        let list = try await service.s3.listObjects(
             .init(
-                bucket: bucketName,
+                bucket: service.bucketName,
                 prefix: key
             ),
-            logger: context.logger,
-            on: context.eventLoop
+            logger: logger,
+            on: eventLoop
         )
         let keys = (list.contents ?? []).map(\.key).compactMap { $0 }
         var dropCount = 0
@@ -317,17 +281,17 @@ extension S3ObjectStorage: ObjectStorage {
     ) async throws {
         let exists = await exists(key: source)
         guard exists else {
-            throw ObjectStorageError.keyNotExists
+            throw HBStorageError.keyNotExists
         }
-        _ = try await s3.copyObject(
+        _ = try await service.s3.copyObject(
             .init(
                 acl: .publicRead,
-                bucket: bucketName,
-                copySource: bucketName + "/" + source,
+                bucket: service.bucketName,
+                copySource: service.bucketName + "/" + source,
                 key: destination
             ),
-            logger: context.logger,
-            on: context.eventLoop
+            logger: logger,
+            on: eventLoop
         )
     }
     
@@ -340,7 +304,7 @@ extension S3ObjectStorage: ObjectStorage {
     ) async throws {
         let exists = await exists(key: source)
         guard exists else {
-            throw ObjectStorageError.keyNotExists
+            throw HBStorageError.keyNotExists
         }
         _ = try await copy(key: source, to: destination)
         try await delete(key: source)
@@ -356,21 +320,21 @@ extension S3ObjectStorage: ObjectStorage {
     ) async throws -> ByteBuffer {
         let exists = await exists(key: source)
         guard exists else {
-            throw ObjectStorageError.keyNotExists
+            throw HBStorageError.keyNotExists
         }
         let byteRange = range.map { "bytes=\($0.lowerBound)-\($0.upperBound)" }
-        let customS3 = s3.with(timeout: timeout)
+        let customS3 = service.s3.with(timeout: timeout)
         let response = try await customS3.getObject(
             .init(
-                bucket: bucketName,
+                bucket: service.bucketName,
                 key: source,
                 range: byteRange
             ),
-            logger: context.logger,
-            on: context.eventLoop
+            logger: logger,
+            on: eventLoop
         )
         guard let buffer = response.body?.asByteBuffer() else {
-            throw ObjectStorageError.invalidResponse
+            throw HBStorageError.invalidResponse
         }
         return buffer
     }
@@ -383,15 +347,15 @@ extension S3ObjectStorage: ObjectStorage {
         .init { c in
             Task {
                 do {
-                    let customS3 = s3.with(timeout: timeout)
+                    let customS3 = service.s3.with(timeout: timeout)
                     _ = try await customS3.multipartDownload(
                         .init(
-                            bucket: bucketName,
+                            bucket: service.bucketName,
                             key: key
                         ),
                         partSize: Int(chunkSize),
-                        logger: context.logger,
-                        on: context.eventLoop
+                        logger: logger,
+                        on: eventLoop
                     ) { buffer, size, eventLoop in
                         c.yield(buffer)
                         return eventLoop.makeSucceededVoidFuture()
@@ -413,13 +377,13 @@ extension S3ObjectStorage: ObjectStorage {
     func delete(
         key: String
     ) async throws -> Void {
-        _ = try await s3.deleteObject(
+        _ = try await service.s3.deleteObject(
             .init(
-                bucket: bucketName,
+                bucket: service.bucketName,
                 key: key
             ),
-            logger: context.logger,
-            on: context.eventLoop
+            logger: logger,
+            on: eventLoop
         )
     }
 
@@ -430,13 +394,13 @@ extension S3ObjectStorage: ObjectStorage {
         key: String
     ) async -> Bool {
         do {
-            _ = try await s3.getObject(
+            _ = try await service.s3.getObject(
                 .init(
-                    bucket: bucketName,
+                    bucket: service.bucketName,
                     key: key
                 ),
-                logger: context.logger,
-                on: context.eventLoop
+                logger: logger,
+                on: eventLoop
             )
             return true
         }
