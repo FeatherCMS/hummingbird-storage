@@ -2,10 +2,6 @@ import NIO
 
 public protocol HBStorage {
 
-    func getPublicUrl(
-        key: String
-    ) -> String
-
     // MARK: - crud
 
     func create(
@@ -58,9 +54,9 @@ public protocol HBStorage {
     // MARK: - upload / download
     
     func upload<T: AsyncSequence & Sendable>(
-        sequence: T,
-        size: UInt,
         key: String,
+        sequence: T,
+        size: Int?,
         timeout: TimeAmount?
     ) async throws where T.Element == ByteBuffer
 
@@ -78,7 +74,7 @@ public protocol HBStorage {
 
     func download(
         key: String,
-        chunkSize: UInt,
+        chunkSize: Int,
         timeout: TimeAmount?
     ) -> AsyncThrowingStream<ByteBuffer, Error>
     

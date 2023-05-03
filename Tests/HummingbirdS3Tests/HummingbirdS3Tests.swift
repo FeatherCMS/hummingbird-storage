@@ -39,8 +39,14 @@ final class HummingbirdS3Tests: XCTestCase {
         
         let storage = app.file.storage.make(logger: logger, eventLoop: app.eventLoopGroup.next())
         
-        try await storage.create(key: "foo")
-            
+        try await storage.upload(key: "mo/test.txt", buffer: .init(string: "test-elek"), timeout: .seconds(5))
+        try await storage.create(key: "mo")
+        
+        let stream = storage.download(key: "mo/test.txt", chunkSize: 1, timeout: .seconds(15))
+        
+        for try await byte in stream {
+            print(byte.getString(at: 0, length: 1))
+        }
 
         try app.shutdownApplication()
     }

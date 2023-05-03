@@ -20,14 +20,6 @@ struct HBS3Storage {
 }
 
 extension HBS3Storage: HBStorage {
-    
-
-    func getPublicUrl(
-        key: String
-    ) -> String {
-        service.publicEndpoint + "/" + key
-    }
-
 
     ///
     /// Creates an empty key (directory)
@@ -35,12 +27,12 @@ extension HBS3Storage: HBStorage {
     func create(
         key: String
     ) async throws {
+        let safeKey = key.split(separator: "/").joined(separator: "/") + "/"
         _ = try await service.s3.putObject(
             .init(
-                acl: .publicRead,
                 bucket: service.bucketName,
                 contentLength: 0,
-                key: key
+                key: safeKey
             ),
             logger: logger,
             on: eventLoop
@@ -107,7 +99,6 @@ extension HBS3Storage: HBStorage {
         
         _ = try await service.s3.copyObject(
             .init(
-                acl: .publicRead,
                 bucket: service.bucketName,
                 copySource: service.bucketName + "/" + source,
                 key: destination
@@ -151,16 +142,15 @@ extension HBS3Storage: HBStorage {
     // MARK: - upload / download
     
     func upload<T: AsyncSequence & Sendable>(
-        sequence: T,
-        size: UInt,
         key: String,
+        sequence: T,
+        size: Int? = nil,
         timeout: TimeAmount? = nil
     ) async throws where T.Element == ByteBuffer {
         let customS3 = service.s3.with(timeout: timeout)
         _ = try await customS3.putObject(
             .init(
-                acl: .publicRead,
-                body: .asyncSequence(sequence, size: Int(size)),
+                body: .asyncSequence(sequence, size: size),
                 bucket: service.bucketName,
                 key: key
             ),
@@ -180,7 +170,6 @@ extension HBS3Storage: HBStorage {
         let customS3 = service.s3.with(timeout: timeout)
         _ = try await customS3.putObject(
             .init(
-                acl: .publicRead,
                 body: .byteBuffer(buffer),
                 bucket: service.bucketName,
                 key: key
@@ -218,7 +207,7 @@ extension HBS3Storage: HBStorage {
 
     func download(
         key: String,
-        chunkSize: UInt,
+        chunkSize: Int = 5 * 1024 * 1024,
         timeout: TimeAmount? = nil
     ) -> AsyncThrowingStream<ByteBuffer, Error> {
         .init { c in
@@ -230,7 +219,7 @@ extension HBS3Storage: HBStorage {
                             bucket: service.bucketName,
                             key: key
                         ),
-                        partSize: Int(chunkSize),
+                        partSize: chunkSize,
                         logger: logger,
                         on: eventLoop
                     ) { buffer, size, eventLoop in
@@ -247,5 +236,4 @@ extension HBS3Storage: HBStorage {
             }
         }
     }
-
 }
