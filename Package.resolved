@@ -37,6 +37,15 @@
       }
     },
     {
+      "identity" : "hummingbird-mustache",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/hummingbird-project/hummingbird-mustache.git",
+      "state" : {
+        "revision" : "fa5617622333da6334252a9d7e3633129b89120d",
+        "version" : "1.0.3"
+      }
+    },
+    {
       "identity" : "jmespath.swift",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/adam-fowler/jmespath.swift.git",
@@ -46,12 +55,12 @@
       }
     },
     {
-      "identity" : "soto",
+      "identity" : "soto-codegenerator",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/soto-project/soto.git",
+      "location" : "https://github.com/soto-project/soto-codegenerator",
       "state" : {
-        "revision" : "18184ba84e97e598ee6c5a7b803851e049e6eab5",
-        "version" : "6.6.0"
+        "revision" : "7e8e10da05e376ffce0d1721526e20e68d8a81d4",
+        "version" : "0.8.0"
       }
     },
     {
@@ -61,6 +70,15 @@
       "state" : {
         "revision" : "3462ca704a43ded3b5a2903f5df3280dd5fa6b1f",
         "version" : "6.5.0"
+      }
+    },
+    {
+      "identity" : "soto-smithy",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/soto-project/soto-smithy.git",
+      "state" : {
+        "revision" : "37c1f08b6a4979873d86cc392015e1244fce7a74",
+        "version" : "0.3.6"
       }
     },
     {

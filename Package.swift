@@ -15,8 +15,8 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-argument-parser.git",from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-nio.git", from: "2.48.0"),
         .package(url: "https://github.com/apple/swift-log.git", from: "1.5.0"),
-        .package(url: "https://github.com/soto-project/soto-core.git", from: "6.5.0"),
-        .package(url: "https://github.com/soto-project/soto.git", from: "6.6.0"),
+        .package(url: "https://github.com/soto-project/soto-core", from: "6.5.0"),
+        .package(url: "https://github.com/soto-project/soto-codegenerator", from: "0.8.0"),
         .package(url: "https://github.com/hummingbird-project/hummingbird.git", from: "1.4.0"),
         .package(url: "https://github.com/FeatherCMS/hummingbird-aws.git", branch: "main"),
     ],
@@ -36,11 +36,22 @@ let package = Package(
         .target(name: "HummingbirdS3", dependencies: [
             .product(name: "NIO", package: "swift-nio"),
             .product(name: "Logging", package: "swift-log"),
-            .product(name: "SotoCore", package: "soto-core"),
-            .product(name: "SotoS3", package: "soto"),
             .product(name: "HummingbirdAWS", package: "hummingbird-aws"),
             .target(name: "HummingbirdStorage"),
+            .target(name: "SotoS3"),
         ]),
+        .target(
+            name: "SotoS3",
+            dependencies: [
+                .product(name: "SotoCore", package: "soto-core"),
+            ],
+            plugins: [
+                .plugin(
+                    name: "SotoCodeGeneratorPlugin",
+                    package: "soto-codegenerator"
+                ),
+            ]
+        ),
 //        .testTarget(name: "HummingbirdLFSTests",
 //             dependencies: [
 //                .target(name: "HummingbirdStorage"),

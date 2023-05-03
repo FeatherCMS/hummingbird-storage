@@ -52,30 +52,15 @@ public protocol HBStorage {
     ) async throws
     
     // MARK: - upload / download
-    
-    func upload<T: AsyncSequence & Sendable>(
-        key: String,
-        sequence: T,
-        size: Int?,
-        timeout: TimeAmount?
-    ) async throws where T.Element == ByteBuffer
 
     func upload(
         key: String,
         buffer: ByteBuffer,
         timeout: TimeAmount?
     ) async throws
-
     
     func download(
         key source: String,
         timeout: TimeAmount?
     ) async throws -> ByteBuffer
-
-    func download(
-        key: String,
-        chunkSize: Int,
-        timeout: TimeAmount?
-    ) -> AsyncThrowingStream<ByteBuffer, Error>
-    
 }

@@ -2,6 +2,7 @@ import NIOCore
 import Logging
 import HummingbirdStorage
 import SotoS3
+import SotoCore
 
 struct HBS3StorageService: HBStorageService {
 
@@ -12,10 +13,7 @@ struct HBS3StorageService: HBStorageService {
     
     /// Bucket
     let bucket: S3.Bucket
-    
-    /// Custom endpoint
-    let endpoint: String?
-    
+
     init(
         client: AWSClient,
         region: Region,
@@ -25,7 +23,6 @@ struct HBS3StorageService: HBStorageService {
     ) {
         let awsUrl = "https://s3.\(region.rawValue).amazonaws.com"
         let endpoint = endpoint ?? awsUrl
-        self.endpoint = endpoint
         self.region = region
         self.bucket = bucket
         self.s3 = S3(

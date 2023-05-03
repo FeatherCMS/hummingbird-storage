@@ -33,8 +33,8 @@ final class HummingbirdS3Tests: XCTestCase {
         
         app.file.storage = HBS3StorageService(
             client: app.aws.client,
-            region: .eucentral1,
-            bucket: .init(name: "bbtestbucket01")
+            region: .init(rawValue: env["S3_REGION"]!),
+            bucket: .init(name: env["S3_BUCKET"])
         )
         
         let storage = app.file.storage.make(logger: logger, eventLoop: app.eventLoopGroup.next())
@@ -42,12 +42,8 @@ final class HummingbirdS3Tests: XCTestCase {
         try await storage.upload(key: "mo/test.txt", buffer: .init(string: "test-elek"), timeout: .seconds(5))
         try await storage.create(key: "mo")
         
-        let stream = storage.download(key: "mo/test.txt", chunkSize: 1, timeout: .seconds(15))
-        
-        for try await byte in stream {
-            print(byte.getString(at: 0, length: 1))
-        }
-
+        let buffer = try await storage.download(key: "mo/test.txt", timeout: .seconds(15))
+        print(buffer.getString(at: 0, length: buffer.readableBytes))
         try app.shutdownApplication()
     }
     

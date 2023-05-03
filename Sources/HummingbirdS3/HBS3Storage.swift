@@ -141,23 +141,6 @@ extension HBS3Storage: HBStorage {
 
     // MARK: - upload / download
     
-    func upload<T: AsyncSequence & Sendable>(
-        key: String,
-        sequence: T,
-        size: Int? = nil,
-        timeout: TimeAmount? = nil
-    ) async throws where T.Element == ByteBuffer {
-        let customS3 = service.s3.with(timeout: timeout)
-        _ = try await customS3.putObject(
-            .init(
-                body: .asyncSequence(sequence, size: size),
-                bucket: service.bucketName,
-                key: key
-            ),
-            logger: logger,
-            on: eventLoop
-        )
-    }
     
     ///
     /// Uploads a file using a key and a data object returning the resolved URL of the uploaded file
@@ -205,35 +188,4 @@ extension HBS3Storage: HBStorage {
         return buffer
     }
 
-    func download(
-        key: String,
-        chunkSize: Int = 5 * 1024 * 1024,
-        timeout: TimeAmount? = nil
-    ) -> AsyncThrowingStream<ByteBuffer, Error> {
-        .init { c in
-            Task {
-                do {
-                    let customS3 = service.s3.with(timeout: timeout)
-                    _ = try await customS3.multipartDownload(
-                        .init(
-                            bucket: service.bucketName,
-                            key: key
-                        ),
-                        partSize: chunkSize,
-                        logger: logger,
-                        on: eventLoop
-                    ) { buffer, size, eventLoop in
-                        c.yield(buffer)
-                        return eventLoop.makeSucceededVoidFuture()
-                    }
-                    .get()
-
-                    c.finish()
-                }
-                catch {
-                    c.finish(throwing: error)
-                }
-            }
-        }
-    }
 }
