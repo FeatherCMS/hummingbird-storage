@@ -1,94 +1,23 @@
 import NIO
 
-public enum MultipartUpload {
-
-    public struct ID: Hashable, Codable {
-        
-        public let value: String
-
-        public init(_ value: String) {
-            self.value = value
-        }
-    }
-
-    public struct Chunk {
-        public let id: String
-        public let number: Int
-        
-        public init(
-            id: String,
-            number: Int
-        ) {
-            self.id = id
-            self.number = number
-        }
-    }
-}
-
 public protocol HBStorage {
 
-    /// Returns the available disk space
-    func getAvailableSpace() -> UInt64
-
-    ///
-    /// Resolves a key to a fileURL string
-    ///
-    /// - Parameters:
-    ///     - key: The unique key for the uploaded file
-    ///
-    /// - Returns:
-    ///     The object URL as a String value
-    ///
-    func resolve(
+    func getPublicUrl(
         key: String
     ) -> String
 
-    func upload<T: AsyncSequence & Sendable>(
-        sequence: T,
-        size: UInt,
-        key: String,
-        checksum: String?,
-        timeout: TimeAmount
-    ) async throws where T.Element == ByteBuffer
+    // MARK: - crud
 
-    ///
-    /// Uploads the data under the given key
-    ///
-    /// - Parameters:
-    ///     - key: The unique key for the uploaded file
-    ///     - buffer: The byte buffer representation of the object
-    ///     - checksum: The checksum to validate object integrity
-    ///
-    func upload(
-        key: String,
-        buffer: ByteBuffer,
-        checksum: String?,
-        timeout: TimeAmount
+    func create(
+        key: String
     ) async throws
 
     ///
-    /// Returns a file content for
+    /// List the contents of a given object for a key
     ///
-    /// - Parameters:
-    ///     - key: The unique key for the uploaded file
-    ///
-    /// - Throws: ·
-    ///     An error if the key does not exists
-    ///
-    /// - Returns:
-    ///     The byte buffer representation of the file
-    ///
-    func download(
-        key source: String,
-        range: ClosedRange<UInt>?,
-        timeout: TimeAmount
-    ) async throws -> ByteBuffer
-
-    func download(
-        key: String,
-        chunkSize: UInt,
-        timeout: TimeAmount
-    ) -> AsyncThrowingStream<ByteBuffer, Error>
+    func list(
+        key: String?
+    ) async throws -> [String]
 
     ///
     /// Check if a given key exists
@@ -120,59 +49,37 @@ public protocol HBStorage {
     ) async throws
 
     ///
-    /// List the contents of a given object for a key
-    ///
-    func list(
-        key: String?
-    ) async throws -> [String]
-    
-    ///
     /// Deletes the data under the given key
     ///
     func delete(
         key: String
     ) async throws
     
+    // MARK: - upload / download
     
-    func create(
-        key: String
-    ) async throws
-    
-    // MARK: - multipart upload
-    
-    func createMultipartUpload(
-        key: String
-    ) async throws -> MultipartUpload.ID
-    
-
-    func uploadMultipartChunk(
-        key: String,
-        buffer: ByteBuffer,
-        uploadId: MultipartUpload.ID,
-        partNumber: Int,
-        timeout: TimeAmount
-    ) async throws -> MultipartUpload.Chunk
-
-    func uploadMultipartChunk<T: AsyncSequence & Sendable>(
-        key: String,
+    func upload<T: AsyncSequence & Sendable>(
         sequence: T,
         size: UInt,
-        uploadId: MultipartUpload.ID,
-        partNumber: Int,
-        timeout: TimeAmount
-    ) async throws -> MultipartUpload.Chunk where T.Element == ByteBuffer
-    
-    func cancelMultipartUpload(
         key: String,
-        uploadId: MultipartUpload.ID
+        timeout: TimeAmount?
+    ) async throws where T.Element == ByteBuffer
+
+    func upload(
+        key: String,
+        buffer: ByteBuffer,
+        timeout: TimeAmount?
     ) async throws
 
     
-    func completeMultipartUpload(
+    func download(
+        key source: String,
+        timeout: TimeAmount?
+    ) async throws -> ByteBuffer
+
+    func download(
         key: String,
-        uploadId: MultipartUpload.ID,
-        checksum: String?,
-        chunks: [MultipartUpload.Chunk],
-        timeout: TimeAmount
-    ) async throws
+        chunkSize: UInt,
+        timeout: TimeAmount?
+    ) -> AsyncThrowingStream<ByteBuffer, Error>
+    
 }

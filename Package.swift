@@ -47,10 +47,8 @@ let package = Package(
 //                .target(name: "HummingbirdLFS"),
 //                .product(name: "HummingbirdFoundation", package: "hummingbird"),
 //        ]),
-//        .testTarget(name: "HummingbirdS3Tests",
-//             dependencies: [
-//                .target(name: "HummingbirdStorage"),
-//                .target(name: "HummingbirdS3"),
-//        ]),
+        .testTarget(name: "HummingbirdS3Tests", dependencies: [
+            .target(name: "HummingbirdS3"),
+        ]),
     ]
 )
