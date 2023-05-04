@@ -30,7 +30,7 @@ Add the selected storage provider library to your target:
 
 ## HummingbirdS3
 
-Simple usage example
+S3 storage example:
 
 ```swift
 import Hummingbird
@@ -71,14 +71,14 @@ try await app.storage.upload(
 )
 ```
 
-## Local storage
+## HummingbirdLFS
 
-Simple usage
+Local storage example:
 
 ```swift
 import Hummingbird
-import HummingbirdMail
-import HummingbirdSMTP
+import HummingbirdStorage
+import HummingbirdLFS
 
 let app = HBApplication()
 app.services.setUpLocalStorage(
