@@ -43,7 +43,7 @@ final class HummingbirdS3Tests: XCTestCase {
             logger: logger
         )
 
-        app.services.setUpS3Service(
+        app.services.setUpS3Storage(
             using: app.services.aws,
             region: env["S3_REGION"]!,
             bucket: env["S3_BUCKET"]!

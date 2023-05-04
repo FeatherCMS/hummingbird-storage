@@ -8,7 +8,7 @@ let package = Package(
     ],
     products: [
         .library(name: "HummingbirdStorage", targets: ["HummingbirdStorage"]),
-//        .library(name: "HummingbirdLFS", targets: ["HummingbirdLFS"]),
+        .library(name: "HummingbirdLFS", targets: ["HummingbirdLFS"]),
         .library(name: "HummingbirdS3", targets: ["HummingbirdS3"]),
     ],
     dependencies: [
@@ -22,19 +22,17 @@ let package = Package(
         .package(url: "https://github.com/FeatherCMS/hummingbird-services", branch: "main"),
     ],
     targets: [
-//        .target(name: "CRC32"),
         .target(name: "HummingbirdStorage", dependencies: [
             .product(name: "Hummingbird", package: "hummingbird"),
             .product(name: "HummingbirdServices", package: "hummingbird-services"),
             .product(name: "NIO", package: "swift-nio"),
             .product(name: "Logging", package: "swift-log"),
         ]),
-//        .target(name: "HummingbirdLFS", dependencies: [
-//            .product(name: "NIO", package: "swift-nio"),
-//            .product(name: "Logging", package: "swift-log"),
-//            .target(name: "HummingbirdStorage"),
-//            .target(name: "CRC32"),
-//        ]),
+        .target(name: "HummingbirdLFS", dependencies: [
+            .product(name: "NIO", package: "swift-nio"),
+            .product(name: "Logging", package: "swift-log"),
+            .target(name: "HummingbirdStorage"),
+        ]),
         .target(name: "HummingbirdS3", dependencies: [
             .product(name: "NIO", package: "swift-nio"),
             .product(name: "Logging", package: "swift-log"),
@@ -54,12 +52,9 @@ let package = Package(
                 ),
             ]
         ),
-//        .testTarget(name: "HummingbirdLFSTests",
-//             dependencies: [
-//                .target(name: "HummingbirdStorage"),
-//                .target(name: "HummingbirdLFS"),
-//                .product(name: "HummingbirdFoundation", package: "hummingbird"),
-//        ]),
+        .testTarget(name: "HummingbirdLFSTests", dependencies: [
+            .target(name: "HummingbirdLFS"),
+        ]),
         .testTarget(name: "HummingbirdS3Tests", dependencies: [
             .target(name: "HummingbirdS3"),
         ]),

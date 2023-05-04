@@ -165,16 +165,16 @@ extension HBS3Storage: HBStorage {
     /// Download object data using a key
     ///
     public func download(
-        key source: String
+        key: String
     ) async throws -> ByteBuffer {
-        let exists = await exists(key: source)
+        let exists = await exists(key: key)
         guard exists else {
             throw HBStorageError.keyNotExists
         }
         let response = try await service.s3.getObject(
             .init(
                 bucket: service.bucketName,
-                key: source
+                key: key
             ),
             logger: logger,
             on: eventLoop
