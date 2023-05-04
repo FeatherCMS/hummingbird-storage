@@ -148,11 +148,9 @@ extension HBS3Storage: HBStorage {
     ///
     public func upload(
         key: String,
-        buffer: ByteBuffer,
-        timeout: TimeAmount? = nil
+        buffer: ByteBuffer
     ) async throws {
-        let customS3 = service.s3.with(timeout: timeout)
-        _ = try await customS3.putObject(
+        _ = try await service.s3.putObject(
             .init(
                 body: .byteBuffer(buffer),
                 bucket: service.bucketName,
@@ -167,15 +165,13 @@ extension HBS3Storage: HBStorage {
     /// Download object data using a key
     ///
     public func download(
-        key source: String,
-        timeout: TimeAmount? = nil
+        key source: String
     ) async throws -> ByteBuffer {
         let exists = await exists(key: source)
         guard exists else {
             throw HBStorageError.keyNotExists
         }
-        let customS3 = service.s3.with(timeout: timeout)
-        let response = try await customS3.getObject(
+        let response = try await service.s3.getObject(
             .init(
                 bucket: service.bucketName,
                 key: source

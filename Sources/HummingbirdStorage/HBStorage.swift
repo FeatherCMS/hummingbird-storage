@@ -55,12 +55,10 @@ public protocol HBStorage {
 
     func upload(
         key: String,
-        buffer: ByteBuffer,
-        timeout: TimeAmount?
+        buffer: ByteBuffer
     ) async throws
     
     func download(
-        key source: String,
-        timeout: TimeAmount?
+        key source: String
     ) async throws -> ByteBuffer
 }

@@ -7,10 +7,10 @@ import SotoCore
 struct HBS3StorageService: HBStorageService {
 
     let s3: S3
-    
+
     /// Region
     let region: Region
-    
+
     /// Bucket
     let bucket: S3.Bucket
 
@@ -42,10 +42,6 @@ struct HBS3StorageService: HBStorageService {
             logger: logger,
             eventLoop: eventLoop
         )
-    }
-    
-    func shutdown() throws {
-        
     }
 }
 
