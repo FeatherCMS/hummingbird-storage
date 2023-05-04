@@ -17,13 +17,15 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-log.git", from: "1.5.0"),
         .package(url: "https://github.com/soto-project/soto-core", from: "6.5.0"),
         .package(url: "https://github.com/soto-project/soto-codegenerator", from: "0.8.0"),
-        .package(url: "https://github.com/hummingbird-project/hummingbird.git", from: "1.4.0"),
-        .package(url: "https://github.com/FeatherCMS/hummingbird-aws.git", branch: "main"),
+        .package(url: "https://github.com/hummingbird-project/hummingbird", from: "1.5.0"),
+        .package(url: "https://github.com/FeatherCMS/hummingbird-aws", branch: "main"),
+        .package(url: "https://github.com/FeatherCMS/hummingbird-services", branch: "main"),
     ],
     targets: [
 //        .target(name: "CRC32"),
         .target(name: "HummingbirdStorage", dependencies: [
             .product(name: "Hummingbird", package: "hummingbird"),
+            .product(name: "HummingbirdServices", package: "hummingbird-services"),
             .product(name: "NIO", package: "swift-nio"),
             .product(name: "Logging", package: "swift-log"),
         ]),

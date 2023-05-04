@@ -1,37 +1,35 @@
 import Hummingbird
+import HummingbirdServices
 import Logging
 
-extension HBApplication {
-    
-    public struct File {
+public extension HBApplication.Services {
 
-        let app: HBApplication
-
-        public var storage: HBStorageService {
-            get {
-                if !app.extensions.exists(\.file.storage) {
-                    fatalError("File storage is not configured.")
-                }
-                return app.extensions.get(\.file.storage)
-            }
-            nonmutating set {
-                app.extensions.set(\.file.storage, value: newValue) { storage in
-                    try storage.shutdown()
-                }
-            }
+    var storage: HBStorageService {
+        get {
+            get(\.services.storage, "Storage service is not configured")
+        }
+        nonmutating set {
+            set(\.services.storage, newValue)
         }
     }
-    
-    public var file: File { .init(app: self) }
 }
 
-//extension HBRequest {
-//
-//    var fs: HBStorageService {
-//        file.storage.f
-//    }
-//}
-//
-//req.fs.upload(key: <#T##String#>)
-//req.mail.send()
-//req.db.create()
+public extension HBApplication {
+
+    var storage: HBStorage {
+        services.storage.make(
+            logger: logger,
+            eventLoop: eventLoopGroup.next()
+        )
+    }
+}
+
+public extension HBRequest {
+
+    var storage: HBStorage {
+        application.services.storage.make(
+            logger: logger,
+            eventLoop: eventLoop
+        )
+    }
+}

@@ -8,7 +8,6 @@ import HummingbirdStorage
 
 final class HummingbirdS3Tests: XCTestCase {
 
-    
     func testUpload() async throws {
         let env = ProcessInfo.processInfo.environment
         
@@ -16,7 +15,7 @@ final class HummingbirdS3Tests: XCTestCase {
         logger.logLevel = .info
         
         let app = HBApplication()
-        app.aws.client = .init(
+        app.services.aws = .init(
             credentialProvider: .static(
                 accessKeyId: env["S3_ID"]!,
                 secretAccessKey: env["S3_SECRET"]!
@@ -30,19 +29,18 @@ final class HummingbirdS3Tests: XCTestCase {
             ),
             logger: logger
         )
-        
-        app.file.storage = HBS3StorageService(
-            client: app.aws.client,
-            region: .init(rawValue: env["S3_REGION"]!),
-            bucket: .init(name: env["S3_BUCKET"])
+
+        app.services.setUpS3Service(
+            using: app.services.aws,
+            region: env["S3_REGION"]!,
+            bucket: env["S3_BUCKET"]!
         )
         
-        let storage = app.file.storage.make(logger: logger, eventLoop: app.eventLoopGroup.next())
         
-        try await storage.upload(key: "mo/test.txt", buffer: .init(string: "test-elek"), timeout: .seconds(5))
-        try await storage.create(key: "mo")
-        
-        let buffer = try await storage.download(key: "mo/test.txt", timeout: .seconds(15))
+        try await app.storage.upload(key: "mo/test.txt", buffer: .init(string: "test-elek"), timeout: .seconds(5))
+        try await app.storage.create(key: "mo")
+
+        let buffer = try await app.storage.download(key: "mo/test.txt", timeout: .seconds(15))
         print(buffer.getString(at: 0, length: buffer.readableBytes))
         try app.shutdownApplication()
     }

@@ -12,19 +12,19 @@
     {
       "identity" : "hummingbird",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/hummingbird-project/hummingbird",
+      "location" : "https://github.com/hummingbird-project/hummingbird.git",
       "state" : {
-        "revision" : "3c0766502f21ea4532506658b9af9fb700bfe353",
-        "version" : "1.4.0"
+        "revision" : "a2b45b9aa5e09b1a2fa0a20b5dc3e9c208297d6a",
+        "version" : "1.5.1"
       }
     },
     {
       "identity" : "hummingbird-aws",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/FeatherCMS/hummingbird-aws.git",
+      "location" : "https://github.com/FeatherCMS/hummingbird-aws",
       "state" : {
         "branch" : "main",
-        "revision" : "e6cf96d36df212a389a30598c319360ba2c4db9f"
+        "revision" : "ee54ea993d8e05cd9d5c9086b192928ae128eacc"
       }
     },
     {
@@ -32,8 +32,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/hummingbird-project/hummingbird-core.git",
       "state" : {
-        "revision" : "b1f07ff02ea17ca4d6e23c233149fafb77bb8bd2",
-        "version" : "1.2.1"
+        "revision" : "6bea362d3db571c9c5ad3b36e12e23bc78a12f65",
+        "version" : "1.3.0"
       }
     },
     {
@@ -43,6 +43,15 @@
       "state" : {
         "revision" : "fa5617622333da6334252a9d7e3633129b89120d",
         "version" : "1.0.3"
+      }
+    },
+    {
+      "identity" : "hummingbird-services",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/FeatherCMS/hummingbird-services",
+      "state" : {
+        "branch" : "main",
+        "revision" : "672d78efe708258e68900cdd9f074fc7dc77fa47"
       }
     },
     {
@@ -66,7 +75,7 @@
     {
       "identity" : "soto-core",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/soto-project/soto-core.git",
+      "location" : "https://github.com/soto-project/soto-core",
       "state" : {
         "revision" : "3462ca704a43ded3b5a2903f5df3280dd5fa6b1f",
         "version" : "6.5.0"
@@ -84,7 +93,7 @@
     {
       "identity" : "swift-argument-parser",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-argument-parser",
+      "location" : "https://github.com/apple/swift-argument-parser.git",
       "state" : {
         "revision" : "fee6933f37fde9a5e12a1e4aeaa93fe60116ff2a",
         "version" : "1.2.2"
@@ -140,8 +149,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio.git",
       "state" : {
-        "revision" : "f7c46552983b06b0958a1a4c8bc5199406ae4c8a",
-        "version" : "2.51.0"
+        "revision" : "d1690f85419fdac8d54e350fb6d2ab9fd95afd75",
+        "version" : "2.51.1"
       }
     },
     {

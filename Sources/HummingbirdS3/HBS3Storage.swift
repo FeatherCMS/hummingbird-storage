@@ -1,8 +1,10 @@
-import HummingbirdStorage
-import SotoS3
 import Foundation
+import Logging
+import NIOCore
+import SotoS3
+import HummingbirdStorage
 
-struct HBS3Storage {
+public struct HBS3Storage {
 	
     let service: HBS3StorageService
     let logger: Logger
@@ -24,7 +26,7 @@ extension HBS3Storage: HBStorage {
     ///
     /// Creates an empty key (directory)
     ///
-    func create(
+    public func create(
         key: String
     ) async throws {
         let safeKey = key.split(separator: "/").joined(separator: "/") + "/"
@@ -42,7 +44,7 @@ extension HBS3Storage: HBStorage {
     ///
     /// List objects under a given key (returning the relative keys)
     ///
-    func list(
+    public func list(
         key: String? = nil
     ) async throws -> [String] {
         let list = try await service.s3.listObjects(
@@ -66,7 +68,7 @@ extension HBS3Storage: HBStorage {
     ///
     /// Check if a file exists using a key
     ///
-    func exists(
+    public func exists(
         key: String
     ) async -> Bool {
         do {
@@ -88,7 +90,7 @@ extension HBS3Storage: HBStorage {
     ///
     /// Copy existing object to a new key
     ///
-    func copy(
+    public func copy(
         key source: String,
         to destination: String
     ) async throws {
@@ -111,7 +113,7 @@ extension HBS3Storage: HBStorage {
     ///
     /// Move existing object to a new key
     ///
-    func move(
+    public func move(
         key source: String,
         to destination: String
     ) async throws {
@@ -126,7 +128,7 @@ extension HBS3Storage: HBStorage {
     ///
     /// Removes a file resource using a key
     ///
-    func delete(
+    public func delete(
         key: String
     ) async throws -> Void {
         _ = try await service.s3.deleteObject(
@@ -141,11 +143,10 @@ extension HBS3Storage: HBStorage {
 
     // MARK: - upload / download
     
-    
     ///
     /// Uploads a file using a key and a data object returning the resolved URL of the uploaded file
     ///
-    func upload(
+    public func upload(
         key: String,
         buffer: ByteBuffer,
         timeout: TimeAmount? = nil
@@ -165,7 +166,7 @@ extension HBS3Storage: HBStorage {
     ///
     /// Download object data using a key
     ///
-    func download(
+    public func download(
         key source: String,
         timeout: TimeAmount? = nil
     ) async throws -> ByteBuffer {
@@ -187,5 +188,4 @@ extension HBS3Storage: HBStorage {
         }
         return buffer
     }
-
 }

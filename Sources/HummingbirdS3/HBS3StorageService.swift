@@ -15,7 +15,7 @@ struct HBS3StorageService: HBStorageService {
     let bucket: S3.Bucket
 
     init(
-        client: AWSClient,
+        aws: AWSClient,
         region: Region,
         bucket: S3.Bucket,
         endpoint: String? = nil,
@@ -26,7 +26,7 @@ struct HBS3StorageService: HBStorageService {
         self.region = region
         self.bucket = bucket
         self.s3 = S3(
-            client: client,
+            client: aws,
             region: region,
             endpoint: endpoint,
             timeout: timeout
