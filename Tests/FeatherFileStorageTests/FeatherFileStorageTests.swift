@@ -1,21 +1,8 @@
 import XCTest
 import NIO
-import NIOFoundationCompat
 import FeatherStorage
 import FeatherFileStorage
 
-private extension ByteBuffer {
-
-    var utf8String: String? {
-        guard
-            let data = getData(at: 0, length: readableBytes),
-            let res = String(data: data, encoding: .utf8)
-        else {
-            return nil
-        }
-        return res
-    }
-}
 
 final class FeatherFileStorageTests: XCTestCase {
 
@@ -32,10 +19,11 @@ final class FeatherFileStorageTests: XCTestCase {
     }()
 
     private func getTestStorage() -> FeatherStorage {
-        
+        let threadPool = NIOThreadPool(numberOfThreads: 1)
+        threadPool.start()
         return FeatherFileStorage(
             workDir: Self.testDir,
-            threadPool: .init(numberOfThreads: 1),
+            threadPool: threadPool,
             logger: .init(label: "test-logger"),
             eventLoop: Self.eventLoopGroup.any()
         )
@@ -60,8 +48,7 @@ final class FeatherFileStorageTests: XCTestCase {
         let buffer = try await storage.download(
             key: key
         )
-
-        guard let res = buffer.utf8String else {
+        guard let res = buffer.getString(at: 0, length: buffer.readableBytes) else {
             return XCTFail("Invalid byte buffer response data value.")
         }
         XCTAssertEqual(res, contents)
@@ -167,7 +154,7 @@ final class FeatherFileStorageTests: XCTestCase {
         let buffer = try await storage.download(
             key: key
         )
-        guard let res = buffer.utf8String else {
+        guard let res = buffer.getString(at: 0, length: buffer.readableBytes) else {
             return XCTFail("Invalid byte buffer response data value.")
         }
         XCTAssertEqual(res, contents)

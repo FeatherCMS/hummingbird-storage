@@ -1,24 +1,10 @@
 import XCTest
 import Logging
 import NIO
-import NIOFoundationCompat
 import FeatherStorage
 import FeatherS3Storage
 import SotoCore
 import SotoS3
-
-private extension ByteBuffer {
-
-    var utf8String: String? {
-        guard
-            let data = getData(at: 0, length: readableBytes),
-            let res = String(data: data, encoding: .utf8)
-        else {
-            return nil
-        }
-        return res
-    }
-}
 
 final class FeatherS3StorageTests: XCTestCase {
 
@@ -77,7 +63,7 @@ final class FeatherS3StorageTests: XCTestCase {
             key: key
         )
 
-        guard let res = buffer.utf8String else {
+        guard let res = buffer.getString(at: 0, length: buffer.readableBytes) else {
             return XCTFail("Invalid byte buffer response data value.")
         }
         XCTAssertEqual(res, contents)
@@ -183,7 +169,7 @@ final class FeatherS3StorageTests: XCTestCase {
         let buffer = try await storage.download(
             key: key
         )
-        guard let res = buffer.utf8String else {
+        guard let res = buffer.getString(at: 0, length: buffer.readableBytes) else {
             return XCTFail("Invalid byte buffer response data value.")
         }
         XCTAssertEqual(res, contents)
