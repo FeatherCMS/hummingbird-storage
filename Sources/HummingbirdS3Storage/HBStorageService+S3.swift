@@ -2,9 +2,9 @@ import Hummingbird
 import HummingbirdServices
 import SotoCore
 
-public extension HBApplication.Services {
+extension HBApplication.Services {
 
-    func setUpS3Storage(
+    public func setUpS3Storage(
         using aws: AWSClient,
         region: String,
         bucket: String,

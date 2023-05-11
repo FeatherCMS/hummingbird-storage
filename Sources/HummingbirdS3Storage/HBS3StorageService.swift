@@ -1,9 +1,9 @@
-import NIOCore
-import Logging
-import HummingbirdStorage
-import SotoS3
-import SotoCore
 import FeatherS3Storage
+import HummingbirdStorage
+import Logging
+import NIOCore
+import SotoCore
+import SotoS3
 
 struct HBS3StorageService: HBStorageService {
 

@@ -1,14 +1,14 @@
-import XCTest
-import Logging
-import NIO
 import Hummingbird
 import HummingbirdAWS
-import HummingbirdStorage
 import HummingbirdS3Storage
+import HummingbirdStorage
+import Logging
+import NIO
+import XCTest
 
-private extension ByteBuffer {
+extension ByteBuffer {
 
-    var utf8String: String? {
+    fileprivate var utf8String: String? {
         guard
             let data = getData(at: 0, length: readableBytes),
             let res = String(data: data, encoding: .utf8)
@@ -23,10 +23,10 @@ final class HummingbirdS3StorageTests: XCTestCase {
 
     private func getTestApp() -> HBApplication {
         let env = ProcessInfo.processInfo.environment
-        
+
         var logger = Logger(label: "aws-logger")
         logger.logLevel = .info
-        
+
         let app = HBApplication()
         app.services.aws = .init(
             credentialProvider: .static(
@@ -50,7 +50,7 @@ final class HummingbirdS3StorageTests: XCTestCase {
         )
         return app
     }
-    
+
     // MARK: - tests
 
     func testUpload() async throws {

@@ -1,11 +1,11 @@
-import XCTest
 import Hummingbird
-import HummingbirdStorage
 import HummingbirdFileStorage
+import HummingbirdStorage
+import XCTest
 
-private extension ByteBuffer {
+extension ByteBuffer {
 
-    var utf8String: String? {
+    fileprivate var utf8String: String? {
         guard
             let data = getData(at: 0, length: readableBytes),
             let res = String(data: data, encoding: .utf8)
@@ -30,17 +30,17 @@ final class HummingbirdFileStorageTests: XCTestCase {
     private func getTestApp() -> HBApplication {
         let app = HBApplication()
 
-        app.services.setUpLocalStorage(
+        app.services.setUpFileStorage(
             workDir: Self.testDir,
             threadPool: app.threadPool
         )
         return app
     }
-    
+
     override class func tearDown() {
         try? FileManager.default.removeItem(atPath: testDir)
     }
-    
+
     // MARK: - tests
 
     func testUpload() async throws {

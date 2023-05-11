@@ -10,6 +10,15 @@
       }
     },
     {
+      "identity" : "feather-storage",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/FeatherCMS/feather-storage",
+      "state" : {
+        "branch" : "main",
+        "revision" : "93084234c46d86e893dae2815620774b3f7dd0fb"
+      }
+    },
+    {
       "identity" : "hummingbird",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/hummingbird-project/hummingbird.git",

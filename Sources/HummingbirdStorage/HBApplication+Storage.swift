@@ -2,9 +2,9 @@ import Hummingbird
 import HummingbirdServices
 import Logging
 
-public extension HBApplication.Services {
+extension HBApplication.Services {
 
-    var storage: HBStorageService {
+    public var storage: HBStorageService {
         get {
             get(\.services.storage, "Storage service is not configured")
         }
@@ -14,9 +14,9 @@ public extension HBApplication.Services {
     }
 }
 
-public extension HBApplication {
+extension HBApplication {
 
-    var storage: HBStorage {
+    public var storage: HBStorage {
         services.storage.make(
             logger: logger,
             eventLoop: eventLoopGroup.next()
@@ -24,9 +24,9 @@ public extension HBApplication {
     }
 }
 
-public extension HBRequest {
+extension HBRequest {
 
-    var storage: HBStorage {
+    public var storage: HBStorage {
         application.services.storage.make(
             logger: logger,
             eventLoop: eventLoop

@@ -1,5 +1,5 @@
-import NIOCore
 import Logging
+import NIOCore
 
 public protocol HBStorageService {
 

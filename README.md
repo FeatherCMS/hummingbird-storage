@@ -21,11 +21,11 @@ Add the `HummingbirdStorage` libarry as a dependency to your target:
 Add the selected storage provider library to your target:
 
 ```swift
-// local storage provider
-.product(name: "HummingbirdLFS", package: "hummingbird-storage"),
+// local file storage provider
+.product(name: "HummingbirdFileStorage", package: "hummingbird-storage"),
 
 // S3 storage provider
-.product(name: "HummingbirdS3", package: "hummingbird-storage"),
+.product(name: "HummingbirdS3Storage", package: "hummingbird-storage"),
 ```    
 
 ## HummingbirdS3
@@ -36,7 +36,7 @@ S3 storage example:
 import Hummingbird
 import HummingbirdAWS
 import HummingbirdStorage
-import HummingbirdS3
+import HummingbirdS3Storage
 
 let env = ProcessInfo.processInfo.environment
 var logger = Logger(label: "aws-logger")
@@ -71,17 +71,17 @@ try await app.storage.upload(
 )
 ```
 
-## HummingbirdLFS
+## HummingbirdFileStorage
 
 Local storage example:
 
 ```swift
 import Hummingbird
 import HummingbirdStorage
-import HummingbirdLFS
+import HummingbirdFileStorage
 
 let app = HBApplication()
-app.services.setUpLocalStorage(
+app.services.setUpFileStorage(
     workDir: "/tmp/",
     threadPool: app.threadPool
 )
