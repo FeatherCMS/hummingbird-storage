@@ -1,7 +1,8 @@
 import XCTest
-import Hummingbird
-import HummingbirdStorage
-import HummingbirdLFS
+import NIO
+import NIOFoundationCompat
+import FeatherStorage
+import FeatherFileStorage
 
 private extension ByteBuffer {
 
@@ -16,8 +17,11 @@ private extension ByteBuffer {
     }
 }
 
-final class HummingbirdLFSTests: XCTestCase {
+final class FeatherFileStorageTests: XCTestCase {
 
+    // yep, this is horrible... will do it for now.
+    static let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+    
     private static var testDir: String = {
         let testPath = #file
             .split(separator: "/")
@@ -27,32 +31,33 @@ final class HummingbirdLFSTests: XCTestCase {
         return "/" + testPath + "/tmp/"
     }()
 
-    private func getTestApp() -> HBApplication {
-        let app = HBApplication()
-
-        app.services.setUpLocalStorage(
+    private func getTestStorage() -> FeatherStorage {
+        
+        return FeatherFileStorage(
             workDir: Self.testDir,
-            threadPool: app.threadPool
+            threadPool: .init(numberOfThreads: 1),
+            logger: .init(label: "test-logger"),
+            eventLoop: Self.eventLoopGroup.any()
         )
-        return app
     }
     
     override class func tearDown() {
         try? FileManager.default.removeItem(atPath: testDir)
+        eventLoopGroup.shutdownGracefully { _ in }
     }
     
     // MARK: - tests
 
     func testUpload() async throws {
-        let app = getTestApp()
+        let storage = getTestStorage()
         let key = "test-01.txt"
         let contents = "lorem ipsum dolor sit amet"
 
-        try await app.storage.upload(
+        try await storage.upload(
             key: key,
             buffer: .init(string: contents)
         )
-        let buffer = try await app.storage.download(
+        let buffer = try await storage.download(
             key: key
         )
 
@@ -63,103 +68,103 @@ final class HummingbirdLFSTests: XCTestCase {
     }
 
     func testCreate() async throws {
-        let app = getTestApp()
+        let storage = getTestStorage()
         let key = "dir01/dir02/dir03"
-        try await app.storage.create(key: key)
+        try await storage.create(key: key)
 
-        let list1 = try await app.storage.list(key: "dir01")
+        let list1 = try await storage.list(key: "dir01")
         XCTAssertEqual(list1, ["dir02"])
 
-        let list2 = try await app.storage.list(key: "dir01/dir02")
+        let list2 = try await storage.list(key: "dir01/dir02")
         XCTAssertEqual(list2, ["dir03"])
     }
 
     func testList() async throws {
-        let app = getTestApp()
+        let storage = getTestStorage()
         let key1 = "dir02/dir03"
-        try await app.storage.create(key: key1)
+        try await storage.create(key: key1)
 
         let key2 = "dir02/test-01.txt"
-        try await app.storage.upload(
+        try await storage.upload(
             key: key2,
             buffer: .init(string: "test")
         )
 
-        let res = try await app.storage.list(key: "dir02")
+        let res = try await storage.list(key: "dir02")
         XCTAssertEqual(res, ["dir03", "test-01.txt"])
     }
 
     func testExists() async throws {
-        let app = getTestApp()
+        let storage = getTestStorage()
         let key1 = "non-existing-thing"
-        let exists1 = await app.storage.exists(key: key1)
+        let exists1 = await storage.exists(key: key1)
         XCTAssertFalse(exists1)
 
         let key2 = "my/dir/"
-        try await app.storage.create(key: key2)
-        let exists2 = await app.storage.exists(key: key2)
+        try await storage.create(key: key2)
+        let exists2 = await storage.exists(key: key2)
         XCTAssertTrue(exists2)
     }
 
     func testListFile() async throws {
-        let app = getTestApp()
+        let storage = getTestStorage()
         let key = "dir04/test-01.txt"
-        try await app.storage.upload(
+        try await storage.upload(
             key: key,
             buffer: .init(string: "test")
         )
 
-        let res = try await app.storage.list(key: key)
+        let res = try await storage.list(key: key)
         XCTAssertEqual(res, [])
     }
 
     func testCopy() async throws {
-        let app = getTestApp()
+        let storage = getTestStorage()
         let key = "test-02.txt"
-        try await app.storage.upload(
+        try await storage.upload(
             key: key,
             buffer: .init(string: "lorem ipsum")
         )
 
         let dest = "test-03.txt"
-        try await app.storage.copy(key: key, to: dest)
+        try await storage.copy(key: key, to: dest)
 
-        let res1 = await app.storage.exists(key: key)
+        let res1 = await storage.exists(key: key)
         XCTAssertTrue(res1)
 
-        let res2 = await app.storage.exists(key: dest)
+        let res2 = await storage.exists(key: dest)
         XCTAssertTrue(res2)
     }
 
     func testMove() async throws {
-        let app = getTestApp()
+        let storage = getTestStorage()
         let key = "test-04.txt"
-        try await app.storage.upload(
+        try await storage.upload(
             key: key,
             buffer: .init(string: "dolor sit amet")
         )
 
         let dest = "test-05.txt"
-        try await app.storage.move(key: key, to: dest)
+        try await storage.move(key: key, to: dest)
 
-        let res1 = await app.storage.exists(key: key)
+        let res1 = await storage.exists(key: key)
         XCTAssertFalse(res1)
 
-        let res2 = await app.storage.exists(key: dest)
+        let res2 = await storage.exists(key: dest)
         XCTAssertTrue(res2)
     }
 
     func testDownload() async throws {
-        let app = getTestApp()
+        let storage = getTestStorage()
         let key = "test-04.txt"
         let contents = "lorem ipsum dolor sit amet"
 
-        try await app.storage.upload(
+        try await storage.upload(
             key: key,
             buffer: .init(string: contents)
         )
 
-        let buffer = try await app.storage.download(
+        let buffer = try await storage.download(
             key: key
         )
         guard let res = buffer.utf8String else {

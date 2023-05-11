@@ -1,9 +1,6 @@
-import NIO
-import Logging
 import Hummingbird
-import HummingbirdStorage
 import HummingbirdServices
-import SotoS3
+import SotoCore
 
 public extension HBApplication.Services {
 
@@ -17,7 +14,7 @@ public extension HBApplication.Services {
         storage = HBS3StorageService(
             aws: aws,
             region: .init(rawValue: region),
-            bucket: .init(name: bucket),
+            bucketName: bucket,
             endpoint: endpoint,
             timeout: timeout
         )

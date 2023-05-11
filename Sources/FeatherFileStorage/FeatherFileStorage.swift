@@ -1,9 +1,62 @@
 import Foundation
 import NIOPosix
 import NIOCore
-import NIOFoundationCompat
 import Logging
-import HummingbirdStorage
+import FeatherStorage
+
+private extension NonBlockingFileIO {
+
+    func write(
+        fileHandle: NIOFileHandle,
+        buffer: ByteBuffer,
+        eventLoop: EventLoop
+    ) async throws {
+        try await write(
+            fileHandle: fileHandle,
+            buffer: buffer,
+            eventLoop: eventLoop
+        ).get()
+    }
+        
+    func openFile(
+        path: String,
+        mode: NIOFileHandle.Mode,
+        flags: NIOFileHandle.Flags = .default,
+        eventLoop: EventLoop
+    ) async throws -> NIOFileHandle {
+        try await openFile(
+            path: path,
+            mode: mode,
+            flags: flags,
+            eventLoop: eventLoop
+        ).get()
+    }
+    
+    func readFileSize(
+        fileHandle: NIOFileHandle,
+        eventLoop: EventLoop
+    ) async throws -> Int64 {
+        try await readFileSize(
+            fileHandle: fileHandle,
+            eventLoop: eventLoop
+        )
+        .get()
+    }
+        
+    func read(
+        fileHandle: NIOFileHandle,
+        byteCount: Int,
+        allocator: ByteBufferAllocator,
+        eventLoop: EventLoop
+    ) async throws -> ByteBuffer {
+        try await read(
+            fileHandle: fileHandle,
+            byteCount: byteCount,
+            allocator: allocator,
+            eventLoop: eventLoop
+        ).get()
+    }
+}
 
 private extension FileManager {
 
@@ -24,16 +77,28 @@ private extension FileManager {
     }
 }
 
-struct HBLFSStorage: HBStorage {
-    
-    let service: HBLFSStorageService
+public struct FeatherFileStorage: FeatherStorage {
+    let workDir: String
+    let threadPool: NIOThreadPool
     let logger: Logger
     let eventLoop: EventLoop
     
-    var workUrl: URL { .init(fileURLWithPath: service.workDir) }
+    public init(
+        workDir: String,
+        threadPool: NIOThreadPool,
+        logger: Logger,
+        eventLoop: EventLoop
+    ) {
+        self.workDir = workDir
+        self.threadPool = threadPool
+        self.logger = logger
+        self.eventLoop = eventLoop
+    }
 }
 
-extension HBLFSStorage {
+public extension FeatherFileStorage {
+    
+    var workUrl: URL { .init(fileURLWithPath: workDir) }
 
     func create(
         key: String
@@ -62,7 +127,7 @@ extension HBLFSStorage {
     ) async throws {
         let exists = await exists(key: source)
         guard exists else {
-            throw HBStorageError.keyNotExists
+            throw FeatherStorageError.keyNotExists
         }
         try await delete(key: destination)
         let sourceUrl = workUrl.appendingPathComponent(source)
@@ -103,24 +168,25 @@ extension HBLFSStorage {
         let location = fileUrl.deletingLastPathComponent()
         try FileManager.default.createDirectory(at: location)
 
-        let fileio = NonBlockingFileIO(threadPool: service.threadPool)
-        return try await fileio.openFile(
+        let fileio = NonBlockingFileIO(threadPool: threadPool)
+        let handle = try await fileio.openFile(
             path: fileUrl.path,
             mode: .write,
             flags: .allowFileCreation(),
             eventLoop: eventLoop
         )
-        .flatMap { handle in
-            fileio.write(
+        do {
+            try await fileio.write(
                 fileHandle: handle,
                 buffer: buffer,
                 eventLoop: eventLoop
             )
-            .flatMapThrowing { _ in
-                try handle.close()
-            }
+            try handle.close()
         }
-        .get()
+        catch {
+            try handle.close()
+            throw error
+        }
     }
     
     func download(
@@ -128,9 +194,33 @@ extension HBLFSStorage {
     ) async throws -> ByteBuffer {
         let exists = await exists(key: key)
         guard exists else {
-            throw HBStorageError.keyNotExists
+            throw FeatherStorageError.keyNotExists
         }
         let sourceUrl = workUrl.appendingPathComponent(key)
-        return .init(data: try Data(contentsOf: sourceUrl))
+        let fileio = NonBlockingFileIO(threadPool: threadPool)
+        let handle = try await fileio.openFile(
+            path: sourceUrl.path,
+            mode: .read,
+            eventLoop: eventLoop
+        )
+        do {
+            let size = try await fileio.readFileSize(
+                fileHandle: handle,
+                eventLoop: eventLoop
+            )
+            
+            let buffer = try await fileio.read(
+                fileHandle: handle,
+                byteCount: Int(size),
+                allocator: .init(),
+                eventLoop: eventLoop
+            )
+            try handle.close()
+            return buffer
+        }
+        catch {
+            try handle.close()
+            throw error
+        }
     }
 }

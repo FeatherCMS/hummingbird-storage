@@ -3,6 +3,7 @@ import Logging
 import HummingbirdStorage
 import SotoS3
 import SotoCore
+import FeatherS3Storage
 
 struct HBS3StorageService: HBStorageService {
 
@@ -12,19 +13,19 @@ struct HBS3StorageService: HBStorageService {
     let region: Region
 
     /// Bucket
-    let bucket: S3.Bucket
+    let bucketName: String
 
     init(
         aws: AWSClient,
         region: Region,
-        bucket: S3.Bucket,
+        bucketName: String,
         endpoint: String? = nil,
         timeout: TimeAmount? = nil
     ) {
         let awsUrl = "https://s3.\(region.rawValue).amazonaws.com"
         let endpoint = endpoint ?? awsUrl
         self.region = region
-        self.bucket = bucket
+        self.bucketName = bucketName
         self.s3 = S3(
             client: aws,
             region: region,
@@ -37,17 +38,11 @@ struct HBS3StorageService: HBStorageService {
         logger: Logger,
         eventLoop: EventLoop
     ) -> HBStorage {
-        HBS3Storage(
-            service: self,
+        FeatherS3Storage(
+            s3: s3,
+            bucketName: bucketName,
             logger: logger,
             eventLoop: eventLoop
         )
     }
-}
-
-extension HBS3StorageService {
-
-    var regionName: String { region.rawValue }
-
-    var bucketName: String { bucket.name! }
 }

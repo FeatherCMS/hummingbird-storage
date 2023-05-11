@@ -2,26 +2,29 @@ import Foundation
 import Logging
 import NIOCore
 import SotoS3
-import HummingbirdStorage
+import FeatherStorage
 
-public struct HBS3Storage {
+public struct FeatherS3Storage {
 	
-    let service: HBS3StorageService
+    let s3: S3
+    let bucketName: String
     let logger: Logger
     let eventLoop: EventLoop
 
-	init(
-        service: HBS3StorageService,
+	public init(
+        s3: S3,
+        bucketName: String,
         logger: Logger,
         eventLoop: EventLoop
     ) {
-        self.service = service
+        self.s3 = s3
+        self.bucketName = bucketName
         self.logger = logger
         self.eventLoop = eventLoop
     }
 }
 
-extension HBS3Storage: HBStorage {
+extension FeatherS3Storage: FeatherStorage {
 
     ///
     /// Creates an empty key (directory)
@@ -30,9 +33,9 @@ extension HBS3Storage: HBStorage {
         key: String
     ) async throws {
         let safeKey = key.split(separator: "/").joined(separator: "/") + "/"
-        _ = try await service.s3.putObject(
+        _ = try await s3.putObject(
             .init(
-                bucket: service.bucketName,
+                bucket: bucketName,
                 contentLength: 0,
                 key: safeKey
             ),
@@ -47,9 +50,9 @@ extension HBS3Storage: HBStorage {
     public func list(
         key: String? = nil
     ) async throws -> [String] {
-        let list = try await service.s3.listObjects(
+        let list = try await s3.listObjects(
             .init(
-                bucket: service.bucketName,
+                bucket: bucketName,
                 prefix: key
             ),
             logger: logger,
@@ -72,9 +75,9 @@ extension HBS3Storage: HBStorage {
         key: String
     ) async -> Bool {
         do {
-            _ = try await service.s3.getObject(
+            _ = try await s3.getObject(
                 .init(
-                    bucket: service.bucketName,
+                    bucket: bucketName,
                     key: key
                 ),
                 logger: logger,
@@ -96,13 +99,13 @@ extension HBS3Storage: HBStorage {
     ) async throws {
         let exists = await exists(key: source)
         guard exists else {
-            throw HBStorageError.keyNotExists
+            throw FeatherStorageError.keyNotExists
         }
         
-        _ = try await service.s3.copyObject(
+        _ = try await s3.copyObject(
             .init(
-                bucket: service.bucketName,
-                copySource: service.bucketName + "/" + source,
+                bucket: bucketName,
+                copySource: bucketName + "/" + source,
                 key: destination
             ),
             logger: logger,
@@ -119,7 +122,7 @@ extension HBS3Storage: HBStorage {
     ) async throws {
         let exists = await exists(key: source)
         guard exists else {
-            throw HBStorageError.keyNotExists
+            throw FeatherStorageError.keyNotExists
         }
         _ = try await copy(key: source, to: destination)
         try await delete(key: source)
@@ -131,9 +134,9 @@ extension HBS3Storage: HBStorage {
     public func delete(
         key: String
     ) async throws -> Void {
-        _ = try await service.s3.deleteObject(
+        _ = try await s3.deleteObject(
             .init(
-                bucket: service.bucketName,
+                bucket: bucketName,
                 key: key
             ),
             logger: logger,
@@ -150,10 +153,10 @@ extension HBS3Storage: HBStorage {
         key: String,
         buffer: ByteBuffer
     ) async throws {
-        _ = try await service.s3.putObject(
+        _ = try await s3.putObject(
             .init(
                 body: .byteBuffer(buffer),
-                bucket: service.bucketName,
+                bucket: bucketName,
                 key: key
             ),
             logger: logger,
@@ -169,18 +172,18 @@ extension HBS3Storage: HBStorage {
     ) async throws -> ByteBuffer {
         let exists = await exists(key: key)
         guard exists else {
-            throw HBStorageError.keyNotExists
+            throw FeatherStorageError.keyNotExists
         }
-        let response = try await service.s3.getObject(
+        let response = try await s3.getObject(
             .init(
-                bucket: service.bucketName,
+                bucket: bucketName,
                 key: key
             ),
             logger: logger,
             on: eventLoop
         )
         guard let buffer = response.body?.asByteBuffer() else {
-            throw HBStorageError.invalidResponse
+            throw FeatherStorageError.invalidResponse
         }
         return buffer
     }

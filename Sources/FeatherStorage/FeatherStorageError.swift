@@ -1,4 +1,4 @@
-public enum HBStorageError: Error {
+public enum FeatherStorageError: Error {
 
     /// Key does not exist
     case keyNotExists

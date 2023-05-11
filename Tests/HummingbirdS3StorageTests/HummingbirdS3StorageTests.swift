@@ -4,7 +4,7 @@ import NIO
 import Hummingbird
 import HummingbirdAWS
 import HummingbirdStorage
-@testable import HummingbirdS3
+import HummingbirdS3Storage
 
 private extension ByteBuffer {
 
@@ -19,7 +19,7 @@ private extension ByteBuffer {
     }
 }
 
-final class HummingbirdS3Tests: XCTestCase {
+final class HummingbirdS3StorageTests: XCTestCase {
 
     private func getTestApp() -> HBApplication {
         let env = ProcessInfo.processInfo.environment
