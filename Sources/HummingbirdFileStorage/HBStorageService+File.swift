@@ -1,15 +1,15 @@
-import NIOPosix
 import Hummingbird
-import HummingbirdStorage
 import HummingbirdServices
+import HummingbirdStorage
+import NIOPosix
 
-public extension HBApplication.Services {
-    
-    func setUpLocalStorage(
+extension HBApplication.Services {
+
+    public func setUpFileStorage(
         workDir: String,
         threadPool: NIOThreadPool
     ) {
-        storage = HBLFSStorageService(
+        storage = HBFileStorageService(
             workDir: workDir,
             threadPool: threadPool
         )

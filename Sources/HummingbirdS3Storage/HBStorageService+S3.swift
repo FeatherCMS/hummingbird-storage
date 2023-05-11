@@ -1,13 +1,10 @@
-import NIO
-import Logging
 import Hummingbird
-import HummingbirdStorage
 import HummingbirdServices
-import SotoS3
+import SotoCore
 
-public extension HBApplication.Services {
+extension HBApplication.Services {
 
-    func setUpS3Storage(
+    public func setUpS3Storage(
         using aws: AWSClient,
         region: String,
         bucket: String,
@@ -17,7 +14,7 @@ public extension HBApplication.Services {
         storage = HBS3StorageService(
             aws: aws,
             region: .init(rawValue: region),
-            bucket: .init(name: bucket),
+            bucketName: bucket,
             endpoint: endpoint,
             timeout: timeout
         )

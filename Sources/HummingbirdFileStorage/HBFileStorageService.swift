@@ -1,9 +1,10 @@
+import FeatherFileStorage
+import HummingbirdStorage
+import Logging
 import NIOCore
 import NIOPosix
-import Logging
-import HummingbirdStorage
 
-struct HBLFSStorageService: HBStorageService {
+struct HBFileStorageService: HBStorageService {
 
     let workDir: String
     let threadPool: NIOThreadPool
@@ -12,11 +13,11 @@ struct HBLFSStorageService: HBStorageService {
         logger: Logger,
         eventLoop: EventLoop
     ) -> HBStorage {
-        HBLFSStorage(
-            service: self,
+        FeatherFileStorage(
+            workDir: workDir,
+            threadPool: threadPool,
             logger: logger,
             eventLoop: eventLoop
         )
     }
 }
-
